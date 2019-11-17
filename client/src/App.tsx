@@ -2,9 +2,11 @@ import React from 'react';
 import './App.scss';
 import {createApiClient, Ticket} from './api';
 import { TicketComp } from './components/Ticket';
+import { TicketsNumber } from './components/TicketsNumber';
 
 export type AppState = {
-	tickets?: Ticket[],
+	tickets: Ticket[],
+	hiddenTickets: string[],
 	search: string;
 }
 
@@ -13,7 +15,9 @@ const api = createApiClient();
 export class App extends React.PureComponent<{}, AppState> {
 
 	state: AppState = {
-		search: ''
+		search: '',
+		tickets: [],
+		hiddenTickets: []
 	}
 
 	searchDebounce: any = null;
@@ -24,6 +28,15 @@ export class App extends React.PureComponent<{}, AppState> {
 		});
 	}
 
+	hideTicket = (ticket:Ticket) => {
+		const hiddenTickets = this.state.hiddenTickets.slice();
+		hiddenTickets.push(ticket.id);
+		this.setState({hiddenTickets});
+	}
+	restoreTickets = () => {
+		this.setState({hiddenTickets:[]});
+	}
+
 	renderTickets = (tickets: Ticket[]) => {
 
 		const filteredTickets = tickets
@@ -31,7 +44,7 @@ export class App extends React.PureComponent<{}, AppState> {
 
 
 		return (<ul className='tickets'>
-			{filteredTickets.map((ticket) => (<TicketComp ticket={ticket}/>))}
+			{filteredTickets.map((ticket) => (<TicketComp key={ticket.id} hideTicket={this.hideTicket} ticket={ticket}/>))}
 		</ul>);
 	}
 
@@ -47,15 +60,15 @@ export class App extends React.PureComponent<{}, AppState> {
 	}
 
 	render() {	
-		const {tickets} = this.state;
-
+		const {tickets , hiddenTickets} = this.state;
+		const shownTickets = tickets.filter(ticket => !hiddenTickets.find(hidden => hidden === ticket.id) );
 		return (<main>
 			<h1>Tickets List</h1>
 			<header>
 				<input type="search" placeholder="Search..." onChange={(e) => this.onSearch(e.target.value)}/>
 			</header>
-			{tickets ? <div className='results'>Showing {tickets.length} results</div> : null }	
-			{tickets ? this.renderTickets(tickets) : <h2>Loading..</h2>}
+			{shownTickets ? <TicketsNumber shownNumber={shownTickets.length} hiddenNumber={hiddenTickets.length} restore={this.restoreTickets}/> : null}	
+			{shownTickets ? this.renderTickets(shownTickets) : <h2>Loading..</h2>}
 		</main>)
 	}
 }
