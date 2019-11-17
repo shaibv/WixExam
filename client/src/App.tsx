@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.scss';
 import {createApiClient, Ticket} from './api';
+import { TicketComp } from './components/Ticket';
 
 export type AppState = {
 	tickets?: Ticket[],
@@ -30,12 +31,7 @@ export class App extends React.PureComponent<{}, AppState> {
 
 
 		return (<ul className='tickets'>
-			{filteredTickets.map((ticket) => (<li key={ticket.id} className='ticket'>
-				<h5 className='title'>{ticket.title}</h5>
-				<footer>
-					<div className='meta-data'>By {ticket.userEmail} | { new Date(ticket.creationTime).toLocaleString()}</div>
-				</footer>
-			</li>))}
+			{filteredTickets.map((ticket) => (<TicketComp ticket={ticket}/>))}
 		</ul>);
 	}
 
